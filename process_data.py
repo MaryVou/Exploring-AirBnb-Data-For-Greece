@@ -10,11 +10,13 @@ pd.set_option("display.max_rows", 150)
 
 #print correlations higher than 0.6
 def locateStrongCorrelations(df):
+	df1 = df
+	df1 = df1.drop(['city','month'],axis=1)	
 	print("#################STRONGEST CORRELATIONS#################")
-	for i in df.columns:
-		for j in df.columns:
-			if ((df[i].corr(df[j]) >= 0.6) and (i != j)):
-				print(i+"-"+j,df[i].corr(df[j]))
+	for i in df1.columns:
+		for j in df1.columns:
+			if ((df1[i].corr(df1[j]) >= 0.6) and (i != j)):
+				print(i+"-"+j,df1[i].corr(df1[j]))
 	print("########################################################")
 
 def preprocess(pathToDf):
@@ -102,7 +104,7 @@ def preprocess(pathToDf):
 	#categorical values will be given codes and one hot encoding
 
 	categorical = ["popularity","availability","bathrooms",
-"bed_type","host_experience","dist_from_center","city","month", 
+"bed_type","host_experience","dist_from_center", 
 "host_is_superhost","host_identity_verified","property_type",
 "room_type","accommodates", "guests_included","cancellation_policy",
 "host_has_profile_pic","instant_bookable"]
@@ -111,6 +113,8 @@ def preprocess(pathToDf):
 
 	continuous = ["price","cleaning_fee","extra_people",
 	"host_since","security_deposit"]
+
+	#only two columns will remain the same so that we can use them later: city and month
 
 	#####################################################################
 	#                    DEAL WITH CATEGORICAL VALUES				    #
@@ -140,19 +144,24 @@ def preprocess(pathToDf):
 	#####################################################################
 	#                      SCALE CONTINUOUS DATA					    #
 	#####################################################################
-	"""
+	
 	scaled_features = df.copy()
 	features = scaled_features[continuous]
 	scaler = StandardScaler().fit(features.values)
 	features = scaler.transform(features.values)
 	scaled_features[continuous] = features
-	"""
+	
 	#####################################################################
 	#                         SAVE CHANGES					            #
 	#####################################################################
 
+	
 	print("\nData Representation After Preprocessing:\n",df.head(10))
 	print(df.shape)
 	df.to_csv(pathToDf)
-	
+	"""
+	print("\nData Representation After Preprocessing:\n",scaled_features.head(10))
+	print(scaled_features.shape)
+	scaled_features.to_csv(pathToDf)
+	"""
 preprocess("final_df.csv")

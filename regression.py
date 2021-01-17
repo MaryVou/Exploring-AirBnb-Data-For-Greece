@@ -1,55 +1,154 @@
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import cross_validate
-from statistics import mean
+from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error,max_error
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
 
 from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import Ridge
 from sklearn.linear_model import Lasso
 from sklearn.linear_model import ElasticNet
 from sklearn.tree import DecisionTreeRegressor
-from sklearn.neighbors import KNeighborsRegressor
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.ensemble import RandomForestRegressor
 
 
 ################################################
-#               Cross Validation               #
+#               	Models 		               #
 ################################################
 
-def crossValidation(X_train, y_train):
-
+def linear(X_train, y_train, X_test, y_test,plot_name):
 	lineReg = LinearRegression()
-	cv_results = cross_validate(lineReg, X_train, y_train, cv=5, scoring = "r2")
-	print("\nLinear: ",mean(cv_results['test_score']))
+	lineReg.fit(X_train, y_train)
+	predictions = lineReg.predict(X_test)
+	print("\n###############################################################")
+	print('\nLinear')
+	print('R2 Score: ',r2_score(y_test,predictions))
+	print('Mean Absolute Error: ',mean_absolute_error(y_test,predictions))
+	print('Max Error:',max_error(y_test,predictions))
+	print("\n###############################################################")
 
-	ridgeReg = Ridge()
-	cv_results = cross_validate(ridgeReg, X_train, y_train, cv=5, scoring = "r2")
-	print("Ridge: ",mean(cv_results['test_score']))
+	fig1, ax1 = plt.subplots()
+	ax1.scatter(y_test, predictions)
+	ax1.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'k--', lw=4)
+	ax1.set_xlabel('Measured')
+	ax1.set_ylabel('Predicted')
+	fig1.suptitle("Linear",fontsize=12)
+	plt.savefig("plots/"+plot_name+".png")
 
-	lassoReg = Lasso()
-	cv_results = cross_validate(lassoReg, X_train, y_train, cv=5, scoring = "r2")
-	print("Lasso: ",mean(cv_results['test_score']))
+def ridge(X_train, y_train, X_test, y_test,plot_name):
+	ridge = Ridge()
+	ridge.fit(X_train, y_train)
+	predictions = ridge.predict(X_test)
+	print("\n###############################################################")
+	print('\nRidge')
+	print('R2 Score: ',r2_score(y_test,predictions))
+	print('Mean Absolute Error: ',mean_absolute_error(y_test,predictions))
+	print('Max Error:',max_error(y_test,predictions))
+	print("\n###############################################################")
 
-	elasticNetReg = ElasticNet()
-	cv_results = cross_validate(elasticNetReg, X_train, y_train, cv=5, scoring = "r2")
-	print("ElasticNet: ",mean(cv_results['test_score']))
+	fig1, ax1 = plt.subplots()
+	ax1.scatter(y_test, predictions)
+	ax1.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'k--', lw=4)
+	ax1.set_xlabel('Measured')
+	ax1.set_ylabel('Predicted')
+	fig1.suptitle("Ridge",fontsize=12)
+	plt.savefig("plots/"+plot_name+".png")
 
-	DTReg = DecisionTreeRegressor()
-	cv_results = cross_validate(DTReg, X_train, y_train, cv=5, scoring = "r2")
-	print("Desicion Tree Regressor: ",mean(cv_results['test_score']))
+def lasso(X_train, y_train, X_test, y_test,plot_name):
+	lasso = Lasso()
+	lasso.fit(X_train, y_train)
+	predictions = lasso.predict(X_test)
+	print("\n###############################################################")
+	print('\nLasso')
+	print('R2 Score: ',r2_score(y_test,predictions))
+	print('Mean Absolute Error: ',mean_absolute_error(y_test,predictions))
+	print('Max Error:',max_error(y_test,predictions))
+	print("\n###############################################################")
 
-	KNReg = KNeighborsRegressor()
-	cv_results = cross_validate(KNReg, X_train, y_train, cv=5, scoring = "r2")
-	print("KNeighbors Regressor: ",mean(cv_results['test_score']))
-	
-	GBReg = GradientBoostingRegressor()
-	cv_results = cross_validate(GBReg, X_train, y_train, cv=5, scoring = "r2")
-	print("Gradient Boosting Regressor: ",mean(cv_results['test_score']))
+	fig1, ax1 = plt.subplots()
+	ax1.scatter(y_test, predictions)
+	ax1.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'k--', lw=4)
+	ax1.set_xlabel('Measured')
+	ax1.set_ylabel('Predicted')
+	fig1.suptitle("Lasso",fontsize=12)
+	plt.savefig("plots/"+plot_name+".png")
 
-	RFReg = RandomForestRegressor()
-	cv_results = cross_validate(RFReg, X_train, y_train, cv=5, scoring = "r2")
-	print("Random Forest Regressor: ",mean(cv_results['test_score']))
+def elasticnet(X_train, y_train, X_test, y_test,plot_name):
+	el = ElasticNet()
+	el.fit(X_train, y_train)
+	predictions = el.predict(X_test)
+	print("\n###############################################################")
+	print('\nElasticNet')
+	print('R2 Score: ',r2_score(y_test,predictions))
+	print('Mean Absolute Error: ',mean_absolute_error(y_test,predictions))
+	print('Max Error:',max_error(y_test,predictions))
+	print("\n###############################################################")
+
+	fig1, ax1 = plt.subplots()
+	ax1.scatter(y_test, predictions)
+	ax1.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'k--', lw=4)
+	ax1.set_xlabel('Measured')
+	ax1.set_ylabel('Predicted')
+	fig1.suptitle("ElasticNet",fontsize=12)
+	plt.savefig("plots/"+plot_name+".png")
+
+def dtreeregressor(X_train, y_train, X_test, y_test,plot_name):
+	dtree = DecisionTreeRegressor()
+	dtree.fit(X_train, y_train)
+	predictions = dtree.predict(X_test)
+	print("\n###############################################################")
+	print('\nDecision Tree Regressor')
+	print('R2 Score: ',r2_score(y_test,predictions))
+	print('Mean Absolute Error: ',mean_absolute_error(y_test,predictions))
+	print('Max Error:',max_error(y_test,predictions))
+	print("\n###############################################################")
+
+	fig1, ax1 = plt.subplots()
+	ax1.scatter(y_test, predictions)
+	ax1.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'k--', lw=4)
+	ax1.set_xlabel('Measured')
+	ax1.set_ylabel('Predicted')
+	fig1.suptitle("Decision Tree Regressor",fontsize=12)
+	plt.savefig("plots/"+plot_name+".png")
+
+def gradientboosting(X_train, y_train, X_test, y_test,plot_name):
+	gb = GradientBoostingRegressor()
+	gb.fit(X_train, y_train)
+	predictions = gb.predict(X_test)
+	print("\n###############################################################")
+	print('\nGradient Boosting Regressor')
+	print('R2 Score: ',r2_score(y_test,predictions))
+	print('Mean Absolute Error: ',mean_absolute_error(y_test,predictions))
+	print('Max Error:',max_error(y_test,predictions))
+	print("\n###############################################################")
+
+	fig1, ax1 = plt.subplots()
+	ax1.scatter(y_test, predictions)
+	ax1.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'k--', lw=4)
+	ax1.set_xlabel('Measured')
+	ax1.set_ylabel('Predicted')
+	fig1.suptitle("Gradient Boosting Regressor",fontsize=12)
+	plt.savefig("plots/"+plot_name+".png")
+
+def randomforest(X_train, y_train, X_test, y_test,plot_name):
+	rf = RandomForestRegressor(n_estimators=100)
+	rf.fit(X_train, y_train)
+	predictions = rf.predict(X_test)
+	print("\n###############################################################")
+	print('\nRandom Forest Regressor')
+	print('R2 Score: ',r2_score(y_test,predictions))
+	print('Mean Absolute Error: ',mean_absolute_error(y_test,predictions))
+	print('Max Error:',max_error(y_test,predictions))
+	print("\n###############################################################")
+
+	fig1, ax1 = plt.subplots()
+	ax1.scatter(y_test, predictions)
+	ax1.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'k--', lw=4)
+	ax1.set_xlabel('Measured')
+	ax1.set_ylabel('Predicted')
+	fig1.suptitle("Random Forest Regressor",fontsize=12)
+	plt.savefig("plots/"+plot_name+".png")
 
 ##########################################################
 # 	PART A: TEST DIFFERENT MODELS ON THE WHOLE DATASET   #
@@ -57,17 +156,24 @@ def crossValidation(X_train, y_train):
 
 df = pd.read_csv("final_df.csv")
 
-#df1 = df.loc[:, ~df.columns.str.startswith("city")]
-#df1 = df.loc[:, ~df.columns.str.startswith("month")]
+del df["Unnamed: 0"]
 
-featureColumns = df.drop(["price"],axis=1)
-
-X = np.array(featureColumns)
+X = np.array(df.drop(['price','city','month'],axis=1))
 Y = np.array(df["price"])
 
-print("\nR2 SCORES OF DIFFERENT MODELS ON THE WHOLE DATASET")
-crossValidation(X,Y)
+X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.1, random_state=42)
+
+linear(X_train, y_train, X_test, y_test,"test1_linear")
+ridge(X_train, y_train, X_test, y_test,"test1_ridge")
+lasso(X_train, y_train, X_test, y_test,"test1_lasso")
+elasticnet(X_train, y_train, X_test, y_test,"test1_elasticnet")
+dtreeregressor(X_train, y_train, X_test, y_test,"test1_dtreeregressor")
+gradientboosting(X_train, y_train, X_test, y_test,"test1_gradientboostingreg")
+randomforest(X_train, y_train, X_test, y_test,"test1_randomforestreg")
 
 ##########################################################
-# 	PART B: TEST DIFFERENT MODELS ON DIFFERENT DATASETS  #
+# 	PART B: TEST DIFFERENT MODELS ON DIFFERENT CITIES    #
 ##########################################################
+
+#df1 = df.loc[:, ~df.columns.str.startswith("city")]
+#df1 = df.loc[:, ~df.columns.str.startswith("month")]
