@@ -3,7 +3,7 @@ import pandas as pd
 from pandas.plotting import scatter_matrix
 
 import matplotlib.pyplot as plt
-
+import numpy as np
 from sklearn import model_selection
 
 from sklearn.metrics import classification_report
@@ -26,22 +26,39 @@ from sklearn.svm import SVC
 
 import seaborn as sns
 
-df = pd.read_csv("final_df1.csv")
+df = pd.read_csv("final_df.csv")
 del df["Unnamed: 0"]
 #print(df.head())
 #print(df.shape)
 
+df_ath = df[df['city'] == 'Athens']
+del df_ath['city']
+del df_ath['month']
 
-df['range'] = pd.cut(df.price, [0,50,100,200,500], include_lowest=True)
-dfsub=df.drop('price',axis=1)
+df_thes = df[df['city'] == 'Thessaloniki']
+del df_thes['city']
+del df_thes['month']
+#X = np.asarray(df_ath[["host_is_superhost","room_type","accommodates","month","deviation_from_mean_price","dist_from_center"]])
+#Y = np.asarray(df_ath["price"])
+
+df_ath['range'] =pd.cut(df_ath['price'], bins=[0,50,100,200,500],labels=["Less than 50","50-100","100-200","More than 200"], include_lowest=True)
+dfsub_ath= df_ath.drop('price',axis=1)
+dfsub_ath['range'] = dfsub_ath['range'].astype("category").cat.codes
+df_thes['range'] = pd.cut(df_thes['price'],bins=[0,50,100,200,500],labels=["Less than 50","50-100","100-200","More than 200"], include_lowest=True)
+dfsub_thes= df_thes.drop('price',axis=1)
+dfsub_thes['range'] = dfsub_thes['range'].astype("category").cat.codes
 #sns.pairplot(dfsub, hue='range')
 #plt.show()
 
-from sklearn.model_selection import train_test_split
-X=dfsub.drop('range',axis=1)
-y=dfsub['range']
-y=y.astype('str')
-X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.1)
+X_train = np.array(dfsub_ath)
+y_train = dfsub_ath['range']
+X_test = np.array(dfsub_thes)
+y_test = dfsub_thes['range']
+#from sklearn.model_selection import train_test_split
+#X=dfsub.drop('range',axis=1)
+#y=dfsub['range']
+#y=y.astype('str')
+#X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.1)
 
 
 #######################################################
