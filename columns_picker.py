@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 non_useful_columns = ['listing_url', 'scrape_id', 'last_scraped', 'name', 
 'description', 'neighborhood_overview', 'picture_url','host_id', 'host_url', 
@@ -52,10 +54,10 @@ is_business_travel_ready (always false)
 """
 
 #Finally we will remove highly correlated features
-	
+
 plt.figure(figsize=(16,6))
 plt.savefig("plots/correlation.png")
-heatmap = sns.heatmap(df.corr(), vmin=-1, vmax=1, annot=True, cmap='BrBG')
+heatmap = sns.heatmap(df2.corr(), vmin=-1, vmax=1, annot=True, cmap='BrBG')
 heatmap.set_title('Correlation Heatmap', fontdict={'fontsize':18}, pad=12);
 plt.savefig("plots/correlation.png")
 

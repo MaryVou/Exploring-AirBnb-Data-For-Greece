@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import pandas as pd
+import numpy as np
 from geopy.distance import geodesic
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -52,7 +54,6 @@ df = pd.concat([df1, df2, df3, df4], axis = 0)
 
 del df["id"], df["latitude"], df["longitude"]	#not needed anymore
 
-
 ###################################################################
 #                      DEALING WITH NA VALUES                     #
 ###################################################################
@@ -65,12 +66,13 @@ print("DATAFRAME SHAPE BEFORE NAN VALUES PREPROCESSING: ",df.shape)
 df["bed_type"] = df["bed_type"].replace(np.nan,"Real Bed")
 
 #rows that don't have a value in "bathrooms" are probably just one 
-df["bathrooms"] = df["bathrooms"].replace(np.nan,1.0)
+df["bathrooms"] = df["bathrooms"].replace(np.nan,df["bathrooms"].mean())
 	
 #rows that don't have a value in "extra_people" are probably 0
-df["extra_people"] = df["extra_people"].str.replace("$","")
-df["extra_people"] = df["extra_people"].replace(np.nan, 0)
-df["extra_people"] = df["extra_people"].astype(float)
+df["extra_people"] = df["extra_people"].str.replace("$","").astype(float)
+df["extra_people"] = df["extra_people"].replace(np.nan, df["extra_people"].mean())
+
+df['guests_included'] = df['guests_included'].replace(np.nan,df["guests_included"].mean())
 
 #drop the rest na values
 df.dropna(inplace=True)

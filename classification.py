@@ -1,136 +1,32 @@
 import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from classification_models import dtree,kneighbors,probabilistic,randomforest,svm
 
-from pandas.plotting import scatter_matrix
-
-import matplotlib.pyplot as plt
-
-from sklearn import model_selection
-
-from sklearn.metrics import classification_report
-
-from sklearn.metrics import confusion_matrix
-
-from sklearn.metrics import accuracy_score
-
-from sklearn.linear_model import LogisticRegression
-
-from sklearn.tree import DecisionTreeClassifier
-
-from sklearn.neighbors import KNeighborsClassifier
-
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
-
-from sklearn.naive_bayes import GaussianNB
-
-from sklearn.svm import SVC
-
-import seaborn as sns
-
-df = pd.read_csv("final_df1.csv")
-del df["Unnamed: 0"]
-#print(df.head())
-#print(df.shape)
+df = pd.read_csv("final_df.csv")
+del df["Unnamed: 0"], df["city"], df["month"]
 
 
-df['range'] = pd.cut(df.price, [0,50,100,200,500], include_lowest=True)
-dfsub=df.drop('price',axis=1)
+df['range'] = pd.cut(df.price, bins=[0,50,100,200,500], labels=["Less than 50","50-100","100-200","More than 200"],include_lowest=True)
+df = df.drop(['price'],axis=1)
 #sns.pairplot(dfsub, hue='range')
 #plt.show()
 
-from sklearn.model_selection import train_test_split
-X=dfsub.drop('range',axis=1)
-y=dfsub['range']
-y=y.astype('str')
-X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.1)
+X = np.array(df.drop(['range'],axis=1))
+y = np.array(df["range"])
 
+X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.1,shuffle=True)
 
-#######################################################
-#              Decision Tree Classifier               #
-#######################################################
-from sklearn.tree import DecisionTreeClassifier
-dtree = DecisionTreeClassifier(criterion='entropy')
-dtree.fit(X_train,y_train)
-predictions = dtree.predict(X_test)
-
-from sklearn.metrics import classification_report, confusion_matrix
-print("#######################################################")
-print("#              Decision Tree Classifier               #")
-print("#######################################################")
-print("Accuracy:  {}".format(accuracy_score(y_test, predictions)))
-print("Matrix:\n{}\n".format(confusion_matrix(y_test,predictions)))
-print("------------------  Report  ---------------------------")
-print(classification_report(y_test,predictions))
-dtreeResult = accuracy_score(y_test, predictions)
-#######################################################
-#                KNeighbors Classifier                #
-#######################################################
-from sklearn.neighbors import KNeighborsClassifier
-knn = KNeighborsClassifier()
-knn.fit(X_train, y_train)
-predictions = knn.predict(X_test)
-print("#######################################################")
-print("#                KNeighbors Classifier                #")
-print("#######################################################")
-print("Accuracy:  {}".format(accuracy_score(y_test, predictions)))
-print("Matrix:\n{}\n".format(confusion_matrix(y_test,predictions)))
-print("------------------  Report  ---------------------------")
-print(classification_report(y_test,predictions))
-knnResult = accuracy_score(y_test, predictions)
-
-
-#######################################################
-#              Probabilistic Classifier               #
-#######################################################
-from sklearn.naive_bayes import GaussianNB
-prob = GaussianNB()
-prob.fit(X_train, y_train)
-predictions = prob.predict(X_test)
-print("#######################################################")
-print("#              Probabilistic Classifier               #")
-print("#######################################################")
-print("Accuracy:  {}".format(accuracy_score(y_test, predictions)))
-print("Matrix:\n{}\n".format(confusion_matrix(y_test,predictions)))
-print("------------------  Report  ---------------------------")
-print(classification_report(y_test,predictions))
-probResult = accuracy_score(y_test, predictions)
-
-#######################################################
-#               Random Forest Classifier              #
-#######################################################
-from sklearn.ensemble import RandomForestClassifier
-RandomForest = RandomForestClassifier(n_estimators=10, max_depth=None,min_samples_split=2, random_state=0)
-RandomForest.fit(X_train,y_train)
-predictions = RandomForest.predict(X_test)
-print("#######################################################")
-print("#               Random Forest Classifier              #")
-print("#######################################################")
-print("Accuracy:  {}".format(accuracy_score(y_test, predictions)))
-print("Matrix:\n{}\n".format(confusion_matrix(y_test,predictions)))
-print("------------------  Report  ---------------------------")
-print(classification_report(y_test,predictions))
-RandomForestResult = accuracy_score(y_test, predictions)
-
-#######################################################
-#                   SVM Classifier                    #
-#######################################################
-from sklearn.svm import SVC
-SVM = SVC()
-SVM.fit(X_train,y_train)
-predictions = SVM.predict(X_test)
-print("#######################################################")
-print("#                   SVM Classifier                    #")
-print("#######################################################")
-print("Accuracy:  {}".format(accuracy_score(y_test, predictions)))
-print("Matrix:\n{}\n".format(confusion_matrix(y_test,predictions)))
-print("------------------  Report  ---------------------------")
-print(classification_report(y_test,predictions))
-SVMResult = accuracy_score(y_test, predictions)
+dtreeResult = dtree(X_train,y_train,X_test,y_test,"class_dtree")
+knnResult = kneighbors(X_train,y_train,X_test,y_test,"class_kneighbors")
+probResult = probabilistic(X_train,y_train,X_test,y_test,"class_prob")
+SVMResult = svm(X_train,y_train,X_test,y_test,"class_svm")
+RandomForestResult = randomforest(X_train,y_train,X_test,y_test,"class_randomforest")
 
 print("\n")
 print("##################    Final Report    #################")
 print("Decision Tree Classifier: {}".format(dtreeResult))
 print("KNeighbors Classifier: {}".format(knnResult))
-
 print("Probabilistic Classifier: {}".format(probResult))
 print("SVM Classifier: {}".format(SVMResult))
 print("Random Forst Classifier: {}".format(RandomForestResult))

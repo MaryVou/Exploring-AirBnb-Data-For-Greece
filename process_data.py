@@ -64,25 +64,33 @@ def preprocess(pathToDf):
 		bins=[0, 1, 5, 10, 150], 
 		labels=["home owner", "experienced", "very experienced","expert"])
 	df = df.drop(["calculated_host_listings_count"], axis=1)
+
+	#create new column "host_years" based on how many years one is a host
 	
+	df["host_years"] = 2020 - df["host_since"]
+	df["host_years"] = pd.cut(df["host_years"], 
+		bins=[-1, 1, 3, 10, 15], 
+		labels=["one or less", "one to three", "three to ten","over ten"])
+	df = df.drop(["host_since"], axis=1)
+
 
 	#####################################################################
 	#             SEPARATE CATEGORICAL AND CONTINUOUS DATA				#
 	#####################################################################	
-
+	
 	#categorical values will be given codes and one hot encoding
 
 	categorical = ["host_is_superhost","host_has_profile_pic","host_identity_verified",
 	"property_type","room_type","bathrooms","bed_type","guests_included",
-	"minimum_minimum_nights","minimum_maximum_nights",
 	"instant_bookable","cancellation_policy","require_guest_profile_picture", 
-	"require_guest_phone_verification","dist_from_center","availability","popularity","host_experience"]
+	"require_guest_phone_verification","dist_from_center","availability","popularity",
+	"host_experience","calculated_host_listings_count_private_rooms", 
+"calculated_host_listings_count_shared_rooms","host_years","review_scores_value"]
 	
 	#continuous values will be scaled and have outliers removed
 
-	continuous = ["price","extra_people","host_since","accommodates",
-	"review_scores_value","calculated_host_listings_count_private_rooms", 
-"calculated_host_listings_count_shared_rooms"]
+	continuous = ["price","minimum_minimum_nights","minimum_maximum_nights",
+	"extra_people","accommodates"]
 
 	#only two columns will remain the same so that we can use them later: city and month
 
@@ -101,19 +109,19 @@ def preprocess(pathToDf):
 	#####################################################################
 	#                      REMOVE OUTLIERS FROM PRICE			        #
 	#####################################################################
-	
-#check which columns are sensitive to outliers and try more categorical
 
 	Q1 = df["price"].quantile(0.25)
 	Q3 = df["price"].quantile(0.75)
 	IQR = Q3 -Q1
 
 	df = df[~((df["price"] < (Q1 - 1.5 * IQR)) | (df["price"] > (Q3 +1.5 * IQR)))]
-			
 
 	#####################################################################
 	#                      SCALE CONTINUOUS DATA					    #
 	#####################################################################
+	
+	#tried scaling continuous features but didn't get good results
+
 	"""
 	scaled_features = df.copy()
 	features = scaled_features[continuous]
