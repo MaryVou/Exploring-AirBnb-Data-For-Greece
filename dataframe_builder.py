@@ -1,13 +1,19 @@
 import pandas as pd
+import numpy as np
 from geopy.distance import geodesic
+import matplotlib.pyplot as plt
+import seaborn as sns
 
-columns = ["id","price","number_of_reviews",
-"availability_365","latitude","longitude","cleaning_fee",
-"bathrooms","bed_type","extra_people",
-"calculated_host_listings_count",
-"host_since","security_deposit","host_is_superhost","host_identity_verified",
-"property_type","room_type","accommodates", "guests_included",
-"cancellation_policy","host_has_profile_pic","instant_bookable"]
+columns = ['id', 'host_since', 'host_is_superhost', 'host_has_profile_pic', 
+'host_identity_verified', 'latitude', 'longitude', 'property_type', 
+'room_type', 'accommodates', 'bathrooms', 'bed_type', 'guests_included', 
+'extra_people', 'minimum_minimum_nights',  
+'minimum_maximum_nights', 'availability_365', 'number_of_reviews', 
+'review_scores_value', 'instant_bookable', 
+'calculated_host_listings_count', 'cancellation_policy', 
+'require_guest_profile_picture', 'require_guest_phone_verification',  
+'calculated_host_listings_count_private_rooms', 
+'calculated_host_listings_count_shared_rooms', 'price']
 
 #will use host_location to check if host is a local
 #host_about could be used for text mining
@@ -43,5 +49,32 @@ df3 = mergeDataframes("airbnb_data/thes_jul_short.csv","airbnb_data/thes_jul_lon
 df4 = mergeDataframes("airbnb_data/thes_jun_short.csv","airbnb_data/thes_jun_long.csv","Thessaloniki","June",(40.6264, 22.9484))
 
 df = pd.concat([df1, df2, df3, df4], axis = 0)
+
+del df["id"], df["latitude"], df["longitude"]	#not needed anymore
+
+
+###################################################################
+#                      DEALING WITH NA VALUES                     #
+###################################################################
+
+print("DATAFRAME SHAPE BEFORE NAN VALUES PREPROCESSING: ",df.shape)
+
+#Fill na rows with the most frequent value of the column
+
+#most common bed type by far is "Real Bed"
+df["bed_type"] = df["bed_type"].replace(np.nan,"Real Bed")
+
+#rows that don't have a value in "bathrooms" are probably just one 
+df["bathrooms"] = df["bathrooms"].replace(np.nan,1.0)
+	
+#rows that don't have a value in "extra_people" are probably 0
+df["extra_people"] = df["extra_people"].str.replace("$","")
+df["extra_people"] = df["extra_people"].replace(np.nan, 0)
+df["extra_people"] = df["extra_people"].astype(float)
+
+#drop the rest na values
+df.dropna(inplace=True)
+
+print("DATAFRAME SHAPE AFTER NAN VALUES PREPROCESSING: ",df.shape)
 
 df.to_csv("final_df.csv", index=False)
