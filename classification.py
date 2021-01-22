@@ -1,9 +1,9 @@
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
-from classification_models import dtree,kneighbors,probabilistic,randomforest,svm
+from classification_models import dtree,kneighbors,probabilistic,rfc,svm
 
-df = pd.read_csv("final_df.csv")
+df = pd.read_csv("main_df.csv")
 del df["Unnamed: 0"], df["city"], df["month"]
 
 
@@ -21,7 +21,7 @@ dtreeResult = dtree(X_train,y_train,X_test,y_test,"class_dtree")
 knnResult = kneighbors(X_train,y_train,X_test,y_test,"class_kneighbors")
 probResult = probabilistic(X_train,y_train,X_test,y_test,"class_prob")
 SVMResult = svm(X_train,y_train,X_test,y_test,"class_svm")
-RandomForestResult = randomforest(X_train,y_train,X_test,y_test,"class_randomforest")
+RandomForestResult = rfc(X_train,y_train,X_test,y_test,"class_randomforest")
 
 print("\n")
 print("##################    Final Report    #################")

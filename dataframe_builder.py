@@ -1,3 +1,11 @@
+"""
+This part contains two functions that will prepare the dataset in order to use it in regression and classification parts.
+After running columns_picker.py to help choose the right columns manually, one has to insert those columns in this script's "columns" list.
+The mergeDataframes function is only usefull if someone is working with both listing files, and the detailed one misses the "price" column.
+Otherwise it's not needed and the dataframes can be merged using the pandas.concat function.
+The preprocess function is using the original columns that were picked.    
+"""
+
 import pandas as pd
 import numpy as np
 import pandas as pd
@@ -6,28 +14,14 @@ from geopy.distance import geodesic
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-columns = ['id', 'host_since', 'host_is_superhost', 'host_has_profile_pic', 
-'host_identity_verified', 'latitude', 'longitude', 'property_type', 
-'room_type', 'accommodates', 'bathrooms', 'bed_type', 'guests_included', 
-'extra_people', 'minimum_minimum_nights',  
-'minimum_maximum_nights', 'availability_365', 'number_of_reviews', 
-'review_scores_value', 'instant_bookable', 
-'calculated_host_listings_count', 'cancellation_policy', 
-'require_guest_profile_picture', 'require_guest_phone_verification',  
-'calculated_host_listings_count_private_rooms', 
-'calculated_host_listings_count_shared_rooms', 'price']
-
-#will use host_location to check if host is a local
-#host_about could be used for text mining
-#review_host_location + neighbourhood_cleansed to find popular neighbourhoods
-
 ###################################################################
 #                      DATAFRAME BUILDING PART                    #
 ###################################################################
 
-def mergeDataframes(file1, file2, city, month, cityCenter):	#Merges files of same month and city but of different size
-	
-	global columns
+#This function is only needed if one is using both listing files and the detailed one misses the "price" column
+#For more recent detailed listing files use prepareDataframe()
+
+def mergeDataframes(columns, file1, file2, city, month, cityCenter):	#Merges files of same month and city but of different size
 
 	df1 = pd.read_csv(file1) 		#df1 should be the "short" file which will be used to extract "price" column
 	df2 = pd.read_csv(file2)		#df2 should be the "long" file which contains all the columns
@@ -45,38 +39,119 @@ def mergeDataframes(file1, file2, city, month, cityCenter):	#Merges files of sam
 	df2['month'] = month 	#returns a merged dataframe
 	return df2
 
-df1 = mergeDataframes("airbnb_data/ath_jul_short.csv","airbnb_data/ath_jul_long.csv","Athens","July",(37.9715, 23.7257))
-df2 = mergeDataframes("airbnb_data/ath_jun_short.csv","airbnb_data/ath_jun_long.csv","Athens","June",(37.9715, 23.7257))
-df3 = mergeDataframes("airbnb_data/thes_jul_short.csv","airbnb_data/thes_jul_long.csv","Thessaloniki","July",(40.6264, 22.9484))
-df4 = mergeDataframes("airbnb_data/thes_jun_short.csv","airbnb_data/thes_jun_long.csv","Thessaloniki","June",(40.6264, 22.9484))
+def prepareDataframe(columns,file,city,month,cityCenter):
 
-df = pd.concat([df1, df2, df3, df4], axis = 0)
+	df = pd.read_csv(file)
 
-del df["id"], df["latitude"], df["longitude"]	#not needed anymore
+	df["dist_from_center"] = df.apply(lambda x:geodesic((x["latitude"], x["longitude"]) , cityCenter) , axis=1) #adds column "dist_from_center"
+	if "dist_from_center" not in columns:
+		columns.append("dist_from_center")
 
-###################################################################
-#                      DEALING WITH NA VALUES                     #
-###################################################################
-
-print("DATAFRAME SHAPE BEFORE NAN VALUES PREPROCESSING: ",df.shape)
-
-#Fill na rows with the most frequent value of the column
-
-#most common bed type by far is "Real Bed"
-df["bed_type"] = df["bed_type"].replace(np.nan,"Real Bed")
-
-#rows that don't have a value in "bathrooms" are probably just one 
-df["bathrooms"] = df["bathrooms"].replace(np.nan,df["bathrooms"].mean())
+	df = df[columns]	#subsets
 	
-#rows that don't have a value in "extra_people" are probably 0
-df["extra_people"] = df["extra_people"].str.replace("$","").astype(float)
-df["extra_people"] = df["extra_people"].replace(np.nan, df["extra_people"].mean())
+	df["city"] = city
+	df['month'] = month 	#returns a merged dataframe
+	return df
 
-df['guests_included'] = df['guests_included'].replace(np.nan,df["guests_included"].mean())
 
-#drop the rest na values
-df.dropna(inplace=True)
+"""
+PREPROCESSING PART
 
-print("DATAFRAME SHAPE AFTER NAN VALUES PREPROCESSING: ",df.shape)
+COLUMNS WILL BE DIVIDED TO CONTINUOUS AND CATEGORICAL
 
-df.to_csv("final_df.csv", index=False)
+CATEGORICAL --> one hot encoder
+
+SPECIAL PREPROCESSING:
+host_since --> keep only the year for simplicity and change type to int
+dist_from_center --> get rid of "km" and change type to float
+"""
+from sklearn.preprocessing import StandardScaler
+
+pd.set_option("display.max_rows", 150)
+
+###################################################################
+#                      DATA PREPROCESSING PART                    #
+###################################################################
+
+def preprocess(pathToDf,continuous,categorical):
+
+	df = pd.read_csv(pathToDf)
+
+	print("\nData Representation Before Preprocessing:\n",df.head(10))
+	print(df.shape)
+
+	#####################################################################
+	#                            DATA SLICING						    #
+	#####################################################################		
+
+	df["dist_from_center"] = df["dist_from_center"].astype(str).str[:-3].astype(float)
+	df["host_since"] = df["host_since"].astype(str).str[:4].astype(int)
+
+	#####################################################################
+	#                        CREATE NEW COLUMNS				      	    #
+	#####################################################################
+	
+	#create 4 large categories for"dist_from_center" - close, relatively close, relatively far and far
+
+	df["dist_from_center"] = pd.cut(df["dist_from_center"],
+		bins=[-1, 1, 3, 5, 15],
+		labels=["very close", "relatively close", "relatively far", "very far"])
+
+	#create new column "popularity" based on the number of reviews
+
+	df["popularity"] = pd.cut(df["number_of_reviews"],
+		bins=[-1, 10, 100, 500, 1000],
+		labels=["undiscovered", "relatively popular", "popular", "sought after"])
+	df = df.drop(["number_of_reviews"],axis=1)
+
+	#create new column "availability" based on how many days the year, a property is available
+
+	df["availability"] = pd.cut(df["availability_365"],
+		bins=[-1, 179, 180, 364, 365],
+		labels=["less than half year", "half year", "more than half year", "all year"])
+	df = df.drop(["availability_365"],axis=1)
+
+	#create new column "host_experience" based on how many properties one is managing 
+
+	df["host_experience"] = pd.cut(df["calculated_host_listings_count"], 
+		bins=[0, 1, 5, 10, 150], 
+		labels=["home owner", "experienced", "very experienced","expert"])
+	df = df.drop(["calculated_host_listings_count"], axis=1)
+
+	#create new column "host_years" based on how many years one is a host
+	
+	df["host_years"] = 2020 - df["host_since"]
+	df["host_years"] = pd.cut(df["host_years"], 
+		bins=[-1, 1, 3, 10, 15], 
+		labels=["one or less", "one to three", "three to ten","over ten"])
+	df = df.drop(["host_since"], axis=1)
+
+	#####################################################################
+	#                    DEAL WITH CATEGORICAL VALUES				    #
+	#####################################################################
+
+	for column in categorical:
+		df[column] = df[column].astype("category").cat.codes
+ 	
+	for column in categorical:
+		ohe = pd.get_dummies(df[column], prefix = column)
+		df = pd.concat([df, ohe], axis = 1)
+		df = df.drop([column], axis = 1)
+
+	#####################################################################
+	#                     		 REMOVE OUTLIERS	         	        #
+	#####################################################################
+	
+	Q1 = df['price'].quantile(0.25)
+	Q3 = df['price'].quantile(0.75)
+	IQR = Q3 -Q1
+
+	df = df[~((df['price'] < (Q1 - 1.5 * IQR)) | (df['price'] > (Q3 +1.5 * IQR)))]
+	
+	#####################################################################
+	#                         SAVE CHANGES					            #
+	#####################################################################
+	
+	print("\nData Representation After Preprocessing:\n",df.head(10))
+	print(df.shape)
+	df.to_csv(pathToDf)

@@ -57,7 +57,7 @@ def probabilistic(X_train, y_train, X_test, y_test,plot_name):
 	result = printMetrics(y_test,predictions,"Probabilistic Classifier",plot_name)
 	return result
 
-def randomforest(X_train, y_train, X_test, y_test,plot_name):
+def rfc(X_train, y_train, X_test, y_test,plot_name):
 	RandomForest = RandomForestClassifier(n_estimators=10, max_depth=None,min_samples_split=2, random_state=0)
 	RandomForest.fit(X_train,y_train)
 	predictions = RandomForest.predict(X_test)

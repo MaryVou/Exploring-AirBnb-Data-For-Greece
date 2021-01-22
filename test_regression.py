@@ -6,9 +6,10 @@ from sklearn.linear_model import LinearRegression
 
 from regression_models import linear, ridge, lasso, elasticnet, dtreeregressor, gradientboosting, randomforest
 
+df = pd.read_csv("main_df.csv")
 
-df = pd.read_csv("final_df.csv")
-del df['Unnamed: 0']
+if "Unnamed: 0" in df.columns:
+	del df["Unnamed: 0"]
 
 ##########################################################
 # 	PART A: TRAIN ON ATHENS AND TEST ON THESSALONIKI     #

@@ -79,7 +79,7 @@ def gradientboosting(X_train, y_train, X_test, y_test,plot_name):
 	printMetrics(y_test,predictions,"Gradient Boosting Regressor",plot_name)
 
 def randomforest(X_train, y_train, X_test, y_test,plot_name):
-	rf = RandomForestRegressor(n_estimators=100)
+	rf = RandomForestRegressor(n_estimators=50,max_features=50,max_depth=20,min_samples_split=5)
 	rf.fit(X_train, y_train)
 	predictions = rf.predict(X_test)
 
